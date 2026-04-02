@@ -1,11 +1,10 @@
 generator client {
-  provider        = "prisma-client"
-  output          = "../generated/prisma"
+  provider = "prisma-client"
+  output   = "../src/generated"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -54,7 +53,7 @@ model Event {
   category         Category         @relation(fields: [categoryId], references: [id])
   creatorId        String
   creator          User             @relation(fields: [creatorId], references: [id])
-  featuredImageId  String? 
+  featuredImageId  String?  @unique
   featuredImage    EventImage?      @relation("EventFeaturedImage", fields: [featuredImageId], references: [id])
   images           EventImage[]
   steps            EventStep[]
@@ -64,7 +63,7 @@ model Event {
   comments         Comment[]
   ratings          Rating[]
 
-  @@fulltext([title, description])
+
   @@map("events")
 }
 

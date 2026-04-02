@@ -32,8 +32,8 @@ export class EventsService {
     const [events, total] = await Promise.all([
       this.prisma.event.findMany({
         where,
-        skip: parseInt(skip),
-        take: parseInt(limit),
+skip: Number(skip),
+take: Number(limit),
         include: {
           category: true,
           creator: { select: { id: true, name: true, email: true } },

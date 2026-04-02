@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards, UseInterceptors, UploadedFiles, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards, UseInterceptors, UploadedFiles, ParseUUIDPipe, Req } from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { OwnerGuard } from '../common/guards/owner.guard';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { Public } from '../common/decorators/public.decorator'; // optional
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Public } from '../common/decorators/public.decorator';
 
 @Controller('events')
 export class EventsController {
@@ -21,9 +22,9 @@ export class EventsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post()
-create(@CurrentUser() user, @Body() createEventDto: CreateEventDto) {
-    return this.eventsService.create(createEventDto, user.id);
+@Post()
+create(@Body() createEventDto: CreateEventDto, @Req() req: any) {
+    return this.eventsService.create(createEventDto, req.user.id);
   }
 
   @UseGuards(JwtAuthGuard, OwnerGuard)
