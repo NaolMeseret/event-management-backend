@@ -1,13 +1,163 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  hashedPassword String
+  name          String?
+  avatar        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  events        Event[]
+  likes         Like[]
+  bookmarks     Bookmark[]
+  comments      Comment[]
+  ratings       Rating[]
+
+  @@map("users")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+
+  events      Event[]
+
+  @@map("categories")
+}
+
+model Event {
+  id            String      @id @default(cuid())
+  title         String
+  slug          String      @unique
+  description   String?
+  duration      Int         // minutes
+  avgRating     Float?      @db.Real @default(0)
+  totalLikes    Int         @default(0)
+  totalComments Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  categoryId       String
+  category         Category         @relation(fields: [categoryId], references: [id])
+  creatorId        String
+  creator          User             @relation(fields: [creatorId], references: [id])
+  featuredImageId  String? 
+  featuredImage    EventImage?      @relation("EventFeaturedImage", fields: [featuredImageId], references: [id])
+  images           EventImage[]
+  steps            EventStep[]
+  amenities        EventAmenity[]
+  likes            Like[]
+  bookmarks        Bookmark[]
+  comments         Comment[]
+  ratings          Rating[]
+
+  @@fulltext([title, description])
+  @@map("events")
+}
+
+model EventImage {
+  id        String   @id @default(cuid())
+  path      String
+  isFeatured Boolean @default(false)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  eventId String
+  event   Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  eventAsFeatured Event? @relation("EventFeaturedImage")
+
+  @@unique([eventId, order])
+  @@map("event_images")
+}
+
+model EventStep {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  order       Int      @default(0)
+
+  eventId String
+  event   Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, order])
+  @@map("event_steps")
+}
+
+model EventAmenity {
+  id    String @id @default(cuid())
+  name  String
+  icon  String?
+
+  eventId String
+  event   Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, name])
+  @@map("event_amenities")
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  eventId String
+  event   Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User  @relation(fields: [userId], references: [id])
+
+  @@unique([eventId, userId])
+  @@map("likes")
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  eventId String
+  event   Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User  @relation(fields: [userId], references: [id])
+
+  @@unique([eventId, userId])
+  @@map("bookmarks")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  text      String
+  createdAt DateTime @default(now())
+
+  eventId String
+  event   Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User  @relation(fields: [userId], references: [id])
+
+  @@map("comments")
+}
+
+model Rating {
+  id        String   @id @default(cuid())
+  value     Float    // 1.0-5.0
+  createdAt DateTime @default(now())
+
+  eventId String
+  event   Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User  @relation(fields: [userId], references: [id])
+
+  @@unique([eventId, userId])
+  @@map("ratings")
 }
