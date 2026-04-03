@@ -5,6 +5,7 @@
   "compilerOptions": {
     "paths": {
       "@prisma/client/*": ["./src/generated/*"]
-    }
+    },
+    "ignoreDeprecations": "6.0"
   }
 }

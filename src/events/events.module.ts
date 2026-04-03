@@ -30,6 +30,6 @@ import { PrismaService } from '../prisma/prisma.service';
     }),
   ],
   controllers: [EventsController],
-  providers: [EventsService, PrismaService],
+  providers: [EventsService],
 })
 export class EventsModule {}
