@@ -72,17 +72,43 @@ take: Number(limit),
     });
   }
 
-  async create(dto: CreateEventDto, userId: string) {
-    return this.prisma.event.create({
-      data: {
-        ...dto,
-        creatorId: userId,
-        slug: dto.slug || dto.title.toLowerCase().replace(/ /g, '-'),
-      },
-      include: {
-        category: true,
-        creator: true,
-      },
+async create(dto: CreateEventDto, userId: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const slug = dto.slug || dto.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '').replace(/\-+/g, '-');
+      const event = await tx.event.create({
+        data: {
+          title: dto.title,
+          slug,
+          description: dto.description,
+          duration: dto.duration,
+          creator: {
+            connect: { id: userId }
+          },
+          category: {
+            connect: { id: dto.categoryId }
+          },
+          steps: dto.steps ? {
+            create: dto.steps.map((step, index) => ({
+              title: step.title,
+              description: step.description,
+              order: index + 1
+            }))
+          } : undefined,
+          amenities: dto.amenities ? {
+            create: dto.amenities.map((amenity: any) => ({
+              name: amenity.name,
+              icon: amenity.icon
+            }))
+          } : undefined,
+        },
+        include: {
+          category: true,
+          creator: { select: { id: true, name: true, email: true } },
+          steps: true,
+          amenities: true,
+        }
+      });
+      return event;
     });
   }
 

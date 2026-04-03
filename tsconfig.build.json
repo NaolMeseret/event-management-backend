@@ -4,7 +4,7 @@
   "include": ["src/**/*.ts"],
   "compilerOptions": {
     "paths": {
-      "@prisma/client/*": ["./generated/*"]
+      "@prisma/client/*": ["./src/generated/*"]
     }
   }
 }
